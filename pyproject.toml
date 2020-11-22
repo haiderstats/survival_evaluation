@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "survival_evaluation"
+version = "0.1.0"
+description = ""
+authors = ["Humza Haider<humza@haiderstats.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+numpy = "^1.19.4"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
