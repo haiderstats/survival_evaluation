@@ -2,7 +2,7 @@
 name = "survival_evaluation"
 version = "0.1.0"
 description = ""
-authors = ["Humza Haider<humza@haiderstats.com>"]
+authors = ["Humza Haider <humza@haiderstats.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
