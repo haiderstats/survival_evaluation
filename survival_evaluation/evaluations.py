@@ -38,9 +38,9 @@ class KaplanMeier:
         index = np.lexsort((event_indicators, event_times))
         unique_times = np.unique(event_times[index], return_counts=True)
         self.survival_times = unique_times[0]
-        population_count = np.flip(np.cumsum(np.flip(unique_times[1])))
+        population_count = np.flip(np.flip(unique_times[1]).cumsum())
 
-        event_counter = np.append(0, np.cumsum(unique_times[1])[:-1])
+        event_counter = np.append(0, unique_times[1].cumsum()[:-1])
         event_ind = list()
         for i in range(np.size(event_counter[:-1])):
             event_ind.append(event_counter[i])
@@ -60,16 +60,51 @@ class KaplanMeier:
     def predict(self, prediction_times: np.array):
         probability_index = np.digitize(prediction_times, self.survival_times)
         probability_index = np.where(
-            probability_index == self.survival_times.size,
+            probability_index == self.survival_times.size + 1,
             probability_index - 1,
             probability_index,
         )
-        probabilities = self.survival_probabilities[probability_index]
-        probabilities = np.where(
-            prediction_times < self.survival_times[0], 1, probabilities
-        )
+        probabilities = np.append(1, self.survival_probabilities)[probability_index]
 
         return probabilities
+
+
+@dataclass
+class KaplanMeierArea:
+    km_model: KaplanMeier
+    area_times: np.array = field(init=False)
+    area_probabilities: np.array = field(init=False)
+    area: np.array = field(init=False)
+
+    def __post_init__(self):
+        area_probabilities = np.append(1, self.km_model.survival_probabilities)
+        area_times = np.append(0, self.km_model.survival_times)
+        if self.km_model.survival_probabilities[-1] != 0:
+            slope = (area_probabilities[-1] - 1) / area_times[-1]
+            zero_survival = -1 / slope
+            area_times = np.append(area_times, zero_survival)
+            area_probabilities = np.append(area_probabilities, 0)
+
+        area_diff = np.diff(area_times, 1)
+        area = np.flip(np.flip(area_diff * area_probabilities[0:-1]).cumsum())
+
+        self.area_times = np.append(area_times, np.inf)
+        self.area_probabilities = area_probabilities
+        self.area = np.append(area, 0)
+
+    def best_guess(self, censor_times: np.array):
+        surv_prob = self.km_model.predict(censor_times)
+        censor_indexes = np.digitize(censor_times, self.area_times)
+        censor_indexes = np.where(
+            censor_indexes == self.area_times.size + 1,
+            censor_indexes - 1,
+            censor_indexes,
+        )
+        censor_area = (
+            self.area_times[censor_indexes] - censor_times
+        ) * self.area_probabilities[censor_indexes - 1]
+        censor_area += self.area[censor_indexes]
+        return censor_times + censor_area / surv_prob
 
 
 # import time
@@ -77,7 +112,12 @@ class KaplanMeier:
 # if __name__ == "__main__":
 #     start = time.time()
 #     event_times = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-#     event_indicators = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 0])
+#     event_indicators = np.array([1, 1, 1, 0, 0, 1, 0, 0, 0, 1])
 #     km = KaplanMeier(event_times, event_indicators)
-#     print(km.predict(np.array([0, 0.5, 1, 1.1, 1.9, 2, 10, 10.5])))
+#     print(km.survival_times)
+#     kma = KaplanMeierArea(km)
+#     print(kma.area)
+#     print(kma.area_times)
+#     print(kma.area_probabilities)
+#     print(kma.best_guess(np.array([1.5, 2.5, 2.02, 1, 7, 9])))
 #     print(time.time() - start)
