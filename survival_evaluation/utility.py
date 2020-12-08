@@ -12,6 +12,8 @@ def to_array(array_like: NumericArrayLike, to_boolean: bool = False) -> np.array
         raise ValueError(
             f"Input should be a 1-d array. Got a shape of {shape} instead."
         )
+    if np.any(array < 0):
+        raise ValueError("All event times must be greater than or equal to zero.")
     if to_boolean:
         return array.astype(bool)
     return array
