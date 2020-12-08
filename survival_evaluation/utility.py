@@ -79,16 +79,16 @@ class KaplanMeier:
 
 
 @dataclass
-class KaplanMeierArea:
-    km_model: KaplanMeier
+class KaplanMeierArea(KaplanMeier):
     area_times: np.array = field(init=False)
     area_probabilities: np.array = field(init=False)
     area: np.array = field(init=False)
 
-    def __post_init__(self):
-        area_probabilities = np.append(1, self.km_model.survival_probabilities)
-        area_times = np.append(0, self.km_model.survival_times)
-        if self.km_model.survival_probabilities[-1] != 0:
+    def __post_init__(self, event_times, event_indicators):
+        super().__post_init__(event_times, event_indicators)
+        area_probabilities = np.append(1, self.survival_probabilities)
+        area_times = np.append(0, self.survival_times)
+        if self.survival_probabilities[-1] != 0:
             slope = (area_probabilities[-1] - 1) / area_times[-1]
             zero_survival = -1 / slope
             area_times = np.append(area_times, zero_survival)
@@ -102,7 +102,7 @@ class KaplanMeierArea:
         self.area = np.append(area, 0)
 
     def best_guess(self, censor_times: np.array):
-        surv_prob = self.km_model.predict(censor_times)
+        surv_prob = self.predict(censor_times)
         censor_indexes = np.digitize(censor_times, self.area_times)
         censor_indexes = np.where(
             censor_indexes == self.area_times.size + 1,
