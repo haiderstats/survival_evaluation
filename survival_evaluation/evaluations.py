@@ -99,42 +99,40 @@ def one_calibration(
     return 1 - chi2.cdf(hosmer_lemeshow, bins - 1)
 
 
-# import time
+def d_calibration(
+    event_indicators: NumericArrayLike,
+    predictions: NumericArrayLike,
+    bins: int = 10,
+) -> float:
+    check_indicators(event_indicators)
 
-# if __name__ == "__main__":
-#     start = time.time()
-#     event_times = np.array(
-#         [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5]
-#     )
-#     event_indicators = np.array(
-#         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-#     )
-#     predictions = np.array(
-#         [
-#             0.1,
-#             0.05,
-#             0.1,
-#             0.2,
-#             0.4,
-#             0.4,
-#             0.4,
-#             0.5,
-#             0.2,
-#             0.6,
-#             0.6,
-#             0.65,
-#             0.76,
-#             0.2,
-#             0.8,
-#             0.87,
-#             0.8,
-#             0.9,
-#             0.92,
-#             0.99,
-#             0.8,
-#             0.78,
-#             0.99,
-#             0.86,
-#         ]
-#     )
-#     print(one_calibration(event_times, event_indicators, predictions, 3, 10))
+    event_indicators = to_array(event_indicators, to_boolean=True)
+    predictions = to_array(predictions)
+
+    # include minimum to catch if probability = 1.
+    bin_index = np.minimum(np.floor(predictions * bins), bins - 1).astype(int)
+    censored_bin_indexes = bin_index[~event_indicators]
+    uncensored_bin_indexes = bin_index[event_indicators]
+
+    censored_predictions = predictions[~event_indicators]
+    censored_contribution = 1 - (censored_bin_indexes / bins) * (
+        1 / censored_predictions
+    )
+    censored_following_contribution = 1 / (bins * censored_predictions)
+
+    contribution_pattern = np.tril(np.ones([bins, bins]), k=-1).astype(bool)
+
+    following_contributions = np.matmul(
+        censored_following_contribution, contribution_pattern[censored_bin_indexes]
+    )
+    single_contributions = np.matmul(
+        censored_contribution, np.eye(bins)[censored_bin_indexes]
+    )
+    uncensored_contributions = np.sum(np.eye(bins)[uncensored_bin_indexes], axis=0)
+    bin_count = (
+        single_contributions + following_contributions + uncensored_contributions
+    )
+    chi2_statistic = np.sum(
+        np.square(bin_count - len(predictions) / bins) / (len(predictions) / bins)
+    )
+    return 1 - chi2.cdf(chi2_statistic, bins - 1)
