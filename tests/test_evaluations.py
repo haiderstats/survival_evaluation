@@ -54,6 +54,20 @@ def test_margin_perfect_tiny_censoring():
     assert np.round(evaluation, 10) == np.round((1 / (9 + 0.8)) * 0.8 * (10 - 9), 10)
 
 
+def test_d_calibration_perfect_values():
+    event_indicators = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    predictions = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+    pvalue, _ = d_calibration(event_indicators, predictions)
+    assert round(pvalue, 3) == 1.000
+
+
+def test_d_calibration_awful():
+    event_indicators = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    predictions = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    pvalue, _ = d_calibration(event_indicators, predictions)
+    assert round(pvalue, 3) == 0.000
+
+
 # I'm so so sorry.
 def test_d_calibration_20_values():
     event_indicators = np.array(
