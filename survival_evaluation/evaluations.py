@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import numpy as np  # type: ignore
 from scipy.stats import chi2  # type: ignore
@@ -103,7 +103,7 @@ def d_calibration(
     event_indicators: NumericArrayLike,
     predictions: NumericArrayLike,
     bins: int = 10,
-) -> float:
+) -> Tuple[float, List[float]]:
     check_indicators(event_indicators)
 
     event_indicators = to_array(event_indicators, to_boolean=True)
@@ -135,4 +135,4 @@ def d_calibration(
     chi2_statistic = np.sum(
         np.square(bin_count - len(predictions) / bins) / (len(predictions) / bins)
     )
-    return 1 - chi2.cdf(chi2_statistic, bins - 1)
+    return 1 - chi2.cdf(chi2_statistic, bins - 1), bin_count / len(predictions)
