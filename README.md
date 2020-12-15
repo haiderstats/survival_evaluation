@@ -16,7 +16,7 @@ from lifelines.datasets import load_rossi
 
 import numpy as np
 import random
-from survival_evaluation import l1
+from survival_evaluation import d_calibration, l1, one_calibration
 
 rossi = load_rossi()
 
