@@ -15,6 +15,7 @@ def to_array(array_like: NumericArrayLike, to_boolean: bool = False) -> np.array
     if np.any(array < 0):
         raise ValueError("All event times must be greater than or equal to zero.")
     if to_boolean:
+        check_indicators(array)
         return array.astype(bool)
     return array
 

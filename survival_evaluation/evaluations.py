@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import numpy as np  # type: ignore
 from scipy.stats import chi2  # type: ignore
@@ -7,7 +7,6 @@ from survival_evaluation.types import NumericArrayLike
 from survival_evaluation.utility import (
     KaplanMeier,
     KaplanMeierArea,
-    check_indicators,
     to_array,
     validate_size,
 )
@@ -22,8 +21,6 @@ def l1(
     training_event_indicators: Optional[NumericArrayLike] = None,
     l1_type: str = "hinge",
 ) -> float:
-
-    check_indicators(event_indicators)
 
     event_times = to_array(event_times)
     event_indicators = to_array(event_indicators, to_boolean=True)
@@ -70,7 +67,6 @@ def one_calibration(
     time: float,
     bins: int = 10,
 ) -> float:
-    check_indicators(event_indicators)
 
     event_times = to_array(event_times)
     event_indicators = to_array(event_indicators, to_boolean=True)
@@ -107,8 +103,7 @@ def d_calibration(
     event_indicators: NumericArrayLike,
     predictions: NumericArrayLike,
     bins: int = 10,
-) -> Tuple[float, List[float]]:
-    check_indicators(event_indicators)
+) -> float:
 
     event_indicators = to_array(event_indicators, to_boolean=True)
     predictions = to_array(predictions)
@@ -139,4 +134,4 @@ def d_calibration(
     chi2_statistic = np.sum(
         np.square(bin_count - len(predictions) / bins) / (len(predictions) / bins)
     )
-    return 1 - chi2.cdf(chi2_statistic, bins - 1), bin_count / len(predictions)
+    return 1 - chi2.cdf(chi2_statistic, bins - 1)
