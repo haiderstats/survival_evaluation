@@ -1,8 +1,17 @@
 [tool.poetry]
 name = "survival_evaluation"
-version = "0.1.0"
-description = ""
+version = "0.1.2"
+description = "A couple survival evaluation metrics."
 authors = ["Humza Haider <humza@haiderstats.com>"]
+
+license = "MIT"
+
+readme = "README.md"
+repository = "https://github.com/haiderstats/survival_evaluation"
+documentation = "https://github.com/haiderstats/survival_evaluation/blob/main/README.md"
+
+keywords = ["survival", "evaluation"]
+
 
 [tool.poetry.dependencies]
 python = "^3.6"
