@@ -76,7 +76,7 @@ def one_calibration(
     event_indicators = to_array(event_indicators, to_boolean=True)
     predictions = 1 - to_array(predictions)
 
-    prediction_order = np.argsort(predictions)
+    prediction_order = np.argsort(-predictions)
     predictions = predictions[prediction_order]
     event_times = event_times[prediction_order]
     event_indicators = event_indicators[prediction_order]
@@ -85,10 +85,14 @@ def one_calibration(
     binned_event_times = np.array_split(event_times, bins)
     binned_event_indicators = np.array_split(event_indicators, bins)
     probability_means = [np.mean(x) for x in np.array_split(predictions, bins)]
-
     hosmer_lemeshow = 0
     for b in range(bins):
         prob = probability_means[b]
+        if prob == 1.0:
+            raise ValueError(
+                "One-Calibration is not well defined: the risk"
+                f"probability of the {b}th bin was {prob}."
+            )
         km_model = KaplanMeier(binned_event_times[b], binned_event_indicators[b])
         event_probability = 1 - km_model.predict(time)
         bin_count = len(binned_event_times[b])
