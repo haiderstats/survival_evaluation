@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "survival_evaluation"
-version = "0.1.2"
+version = "0.1.3"
 description = "A couple survival evaluation metrics."
 authors = ["Humza Haider <humza@haiderstats.com>"]
 
