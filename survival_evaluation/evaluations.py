@@ -60,13 +60,14 @@ def l1(
 
 
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 def one_calibration(
     event_times: NumericArrayLike,
     event_indicators: NumericArrayLike,
     predictions: NumericArrayLike,
     time: float,
     bins: int = 10,
-) -> float:
+) -> dict:
 
     event_times = to_array(event_times)
     event_indicators = to_array(event_indicators, to_boolean=True)
@@ -82,6 +83,8 @@ def one_calibration(
     binned_event_indicators = np.array_split(event_indicators, bins)
     probability_means = [np.mean(x) for x in np.array_split(predictions, bins)]
     hosmer_lemeshow = 0
+    observed_probabilities = list()
+    expected_probabilities = list()
     for b in range(bins):
         prob = probability_means[b]
         if prob == 1.0:
@@ -95,15 +98,21 @@ def one_calibration(
         hosmer_lemeshow += (bin_count * event_probability - bin_count * prob) ** 2 / (
             bin_count * prob * (1 - prob)
         )
+        observed_probabilities.append(event_probability)
+        expected_probabilities.append(prob)
 
-    return 1 - chi2.cdf(hosmer_lemeshow, bins - 1)
+    return dict(
+        p_value=1 - chi2.cdf(hosmer_lemeshow, bins - 1),
+        observed=observed_probabilities,
+        expected=expected_probabilities,
+    )
 
 
 def d_calibration(
     event_indicators: NumericArrayLike,
     predictions: NumericArrayLike,
     bins: int = 10,
-) -> float:
+) -> dict:
 
     event_indicators = to_array(event_indicators, to_boolean=True)
     predictions = to_array(predictions)
@@ -134,4 +143,10 @@ def d_calibration(
     chi2_statistic = np.sum(
         np.square(bin_count - len(predictions) / bins) / (len(predictions) / bins)
     )
-    return 1 - chi2.cdf(chi2_statistic, bins - 1)
+    return dict(
+        p_value=1 - chi2.cdf(chi2_statistic, bins - 1),
+        bin_proportions=bin_count / len(predictions),
+        censored_contributions=(single_contributions + following_contributions)
+        / len(predictions),
+        uncensored_contributions=uncensored_contributions / len(predictions),
+    )

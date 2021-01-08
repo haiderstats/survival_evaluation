@@ -70,7 +70,9 @@ def test_one_calibration_failure():
     event_indicators = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     predictions = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99])
     time = 2
-    pvalue = one_calibration(event_times, event_indicators, predictions, time)
+    pvalue = one_calibration(event_times, event_indicators, predictions, time)[
+        "p_value"
+    ]
     assert round(pvalue, 3) == 0.000
 
 
@@ -586,21 +588,23 @@ def test_one_calibration():
         0.7331439,
         0.8057345,
     ]
-    pvalue = one_calibration(event_times, event_indicators, predictions, time=200.0)
+    pvalue = one_calibration(event_times, event_indicators, predictions, time=200.0)[
+        "p_value"
+    ]
     assert round(pvalue, 3) == 0.112
 
 
 def test_d_calibration_perfect_values():
     event_indicators = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     predictions = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-    pvalue = d_calibration(event_indicators, predictions)
+    pvalue = d_calibration(event_indicators, predictions)["p_value"]
     assert round(pvalue, 3) == 1.000
 
 
 def test_d_calibration_fail():
     event_indicators = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     predictions = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    pvalue = d_calibration(event_indicators, predictions)
+    pvalue = d_calibration(event_indicators, predictions)["p_value"]
     assert round(pvalue, 3) == 0.000
 
 
@@ -633,7 +637,7 @@ def test_d_calibration_20_values():
             1.00,
         ]
     )
-    dcal_pvalue = d_calibration(event_indicators, predictions)
+    dcal_pvalue = d_calibration(event_indicators, predictions)["p_value"]
     proportions = np.array(
         [
             round((2 + 0.1 + 0.0217391), 3),
